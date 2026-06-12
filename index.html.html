@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tense Timeline Reflex Arena v4.0</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Orbitron -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #0b0f19, #02040a);
+        }
+        .arcade-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .neon-glow-indigo {
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+        .neon-glow-emerald {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+        .neon-glow-rose {
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+        }
+        .btn-arcade {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-arcade:active {
+            transform: scale(0.97);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.3s ease-in-out;
+        }
+        .timer-progress {
+            transition: width 100ms linear;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between text-slate-100 overflow-x-hidden antialiased selection:bg-indigo-500 selection:text-slate-950">
+
+    <!-- Header Block -->
+    <header class="w-full border-b border-slate-900 bg-slate-950/95 backdrop-blur px-4 py-3 z-10">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <div class="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
+                    <i class="fa-solid fa-clock-rotate-left text-sm animate-pulse"></i>
+                </div>
+                <h1 class="arcade-font text-xs md:text-sm font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
+                    TIMELINE <span class="text-emerald-400">→ REFLEX</span>
+                </h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="text-slate-400 hover:text-indigo-400 p-1.5 rounded-lg border border-slate-800 transition-all">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <div class="flex flex-col items-end">
+                    <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">High Score</span>
+                    <span id="globalHighScore" class="arcade-font text-xs md:text-sm font-bold text-yellow-400">000000</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Interactive Workspace -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-xl bg-slate-950/80 border border-slate-900 rounded-2xl overflow-hidden backdrop-blur-lg relative" id="gameWindow">
+            
+            <!-- TIME BAR -->
+            <div class="w-full h-1.5 bg-slate-950 relative overflow-hidden hidden" id="timerBarContainer">
+                <div id="timerProgress" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 w-full timer-progress"></div>
+            </div>
+
+            <!-- ================= STATE 1: SELECTION MENU ================= -->
+            <div id="stateMenu" class="p-6 md:p-8 flex flex-col items-center">
+                <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-6 neon-glow-indigo">
+                    <i class="fa-solid fa-bolt-lightning text-3xl text-slate-950"></i>
+                </div>
+                
+                <h2 class="arcade-font text-lg md:text-xl font-black mb-2 text-slate-100 text-center tracking-wider">TENSE BATTLE ARENA v4.0</h2>
+                <p class="text-slate-400 text-xs text-center max-w-md mb-6 leading-relaxed">
+                    Xóa bỏ cách giải đề TOEIC vẹt. Hãy huấn luyện bộ não phản xạ dòng thời gian: 
+                    <span class="text-indigo-400 font-bold">Tình huống → Đồ họa Timeline → Ngữ pháp tự nhiên</span>.
+                    <br>
+                    <span class="text-rose-400 font-extrabold">⚠️ ARCADE RULE:</span> 15 giây phản xạ. Chọn sai hoặc Hết giờ = Streak gãy, Điểm về 0!
+                </p>
+
+                <!-- Game Level Cards -->
+                <div class="w-full space-y-3 mb-4">
+                    <!-- Mode 1 -->
+                    <button onclick="launchGameMode('level1')" class="w-full p-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/80 hover:border-indigo-500/50 text-left transition-all group flex justify-between items-center">
+                        <div>
+                            <span class="arcade-font text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-0.5">LEVEL 1: TIMELINE RECOGNITION</span>
+                            <span class="text-[11px] text-slate-400 leading-normal block">Nhìn sơ đồ hình ảnh SVG, bắn ra tên thì tương ứng ngay lập tức.</span>
+                        </div>
+                        <i class="fa-solid fa-eye text-slate-600 group-hover:text-indigo-400 transition-colors text-base ml-3"></i>
+                    </button>
+                    <!-- Mode 2 -->
+                    <button onclick="launchGameMode('level2')" class="w-full p-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/80 hover:border-emerald-500/50 text-left transition-all group flex justify-between items-center">
+                        <div>
+                            <span class="arcade-font text-[10px] font-black text-emerald-400 uppercase tracking-widest block mb-0.5">LEVEL 2: SITUATION TO TIMELINE</span>
+                            <span class="text-[11px] text-slate-400 leading-normal block">Đọc ngữ cảnh micro-scenario và ánh xạ sang sơ đồ logic thời gian đúng.</span>
+                        </div>
+                        <i class="fa-solid fa-diagram-project text-slate-600 group-hover:text-emerald-400 transition-colors text-base ml-3"></i>
+                    </button>
+                    <!-- Mode 3 -->
+                    <button onclick="launchGameMode('level3')" class="w-full p-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/80 hover:border-cyan-500/50 text-left transition-all group flex justify-between items-center">
+                        <div>
+                            <span class="arcade-font text-[10px] font-black text-cyan-400 uppercase tracking-widest block mb-0.5">LEVEL 3: SIGNAL WORD BATTLE</span>
+                            <span class="text-[11px] text-slate-400 leading-normal block">Từ khóa thời gian (since, before, currently,...) tương ứng với sơ đồ nào?</span>
+                        </div>
+                        <i class="fa-solid fa-map-pin text-slate-600 group-hover:text-cyan-400 transition-colors text-base ml-3"></i>
+                    </button>
+                    <!-- Mode 4 -->
+                    <button onclick="launchGameMode('level4')" class="w-full p-4 rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/80 hover:border-amber-500/50 text-left transition-all group flex justify-between items-center">
+                        <div>
+                            <span class="arcade-font text-[10px] font-black text-amber-400 uppercase tracking-widest block mb-0.5">LEVEL 4: SPOT THE DIFFERENCE</span>
+                            <span class="text-[11px] text-slate-400 leading-normal block">Phân biệt các mốc thời gian nhạy cảm dễ gây nhiễu trong đề thi.</span>
+                        </div>
+                        <i class="fa-solid fa-compress text-slate-600 group-hover:text-amber-400 transition-colors text-base ml-3"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= STATE 2: PLAYING AREA ================= -->
+            <div id="statePlaying" class="p-6 md:p-8 hidden">
+                <!-- Top Status bar -->
+                <div class="flex justify-between items-center mb-5">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Active Score</span>
+                        <span id="currentScore" class="arcade-font text-lg font-bold text-indigo-400">000000</span>
+                    </div>
+
+                    <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full" id="streakContainer">
+                        <i class="fa-solid fa-fire text-emerald-400 text-xs animate-pulse"></i>
+                        <span id="currentStreak" class="arcade-font text-xs font-black text-emerald-400">0x Streak</span>
+                    </div>
+                </div>
+
+                <!-- Mode Indicator -->
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <span id="modeBadge" class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">LEVEL</span>
+                        <span id="questionCounter" class="text-slate-500 text-[10px] font-bold uppercase tracking-widest ml-2">Q. 1 / 10</span>
+                    </div>
+                    <span id="levelGoalTip" class="text-[9px] text-indigo-400 font-semibold tracking-wider uppercase">Dự đoán logic timeline</span>
+                </div>
+
+                <!-- Live Timeline SVG Renderer Container -->
+                <div id="targetTimelineContainer" class="bg-slate-950 border border-slate-900 rounded-xl p-4 mb-4 flex items-center justify-center relative min-h-[140px] overflow-hidden">
+                    <div class="absolute top-1.5 left-2.5 text-[8px] text-slate-600 font-bold uppercase tracking-widest">Sơ đồ Dòng thời gian</div>
+                    <!-- SVG gets dynamically injected here -->
+                    <svg id="game-svg" class="w-full max-w-sm h-28" viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="game-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" />
+                            </marker>
+                        </defs>
+                        <line x1="50" y1="90" x2="550" y2="90" stroke="#334155" stroke-width="3" marker-end="url(#game-arrow)" />
+                        <!-- Reference NOW line -->
+                        <line x1="300" y1="50" x2="300" y2="130" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4,4" />
+                        <circle cx="300" cy="90" r="5" fill="#f43f5e" />
+                        <text x="300" y="145" fill="#f43f5e" font-size="12" font-weight="extrabold" text-anchor="middle">NOW</text>
+                        
+                        <!-- Dynamic overlay -->
+                        <g id="game-dynamic-shapes"></g>
+                    </svg>
+                </div>
+
+                <!-- Context Scenario Text Area (Visible when needed) -->
+                <div id="contextScenarioBox" class="bg-slate-950/60 border border-slate-900 rounded-xl p-3 mb-4 text-center hidden">
+                    <span class="text-[8px] text-slate-500 font-bold uppercase block mb-1">Mô tả Tình huống</span>
+                    <p id="contextScenarioText" class="text-slate-200 text-xs font-semibold leading-relaxed"></p>
+                </div>
+
+                <!-- Answers Grid -->
+                <div class="grid grid-cols-1 gap-2.5" id="choicesGrid">
+                    <!-- Dynamic buttons -->
+                </div>
+            </div>
+
+            <!-- ================= STATE 3: DIAGNOSTIC & PEDAGOGY PANEL ================= -->
+            <div id="stateFeedback" class="p-6 md:p-8 hidden">
+                <div class="flex flex-col items-center text-center mb-5">
+                    <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center justify-center mb-3 neon-glow-rose">
+                        <i class="fa-solid fa-heart-crack text-lg text-rose-500"></i>
+                    </div>
+                    <h3 class="arcade-font text-base font-black text-rose-500 tracking-wider uppercase">STREAK BROKEN!</h3>
+                    <p id="failureExplanationHeader" class="text-[11px] text-slate-400 mt-1">Sai lệch mô hình hoặc phản xạ quá thời gian quy định!</p>
+                </div>
+
+                <!-- Comparison Card -->
+                <div class="space-y-4 mb-6">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-950 border border-rose-500/20 rounded-xl p-3">
+                            <span class="text-[8px] font-bold text-rose-400 uppercase tracking-widest block mb-1">Sự lựa chọn của bạn</span>
+                            <span id="userChoiceResult" class="font-bold text-slate-300 text-xs">--</span>
+                        </div>
+                        <div class="bg-slate-950 border border-emerald-500/20 rounded-xl p-3">
+                            <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-widest block mb-1">Dữ liệu gốc chính xác</span>
+                            <span id="correctChoiceResult" class="font-bold text-emerald-400 text-xs">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Core Pedagogical Breakdown -->
+                    <div class="bg-slate-950 border border-slate-900 rounded-xl p-4">
+                        <h4 class="text-[9px] font-bold text-yellow-400 uppercase tracking-widest mb-2 flex items-center">
+                            <i class="fa-solid fa-microscope mr-1.5"></i> CHI TIẾT TƯ DUY THỜI GIAN (TEMPORAL LOGIC)
+                        </h4>
+                        <div class="space-y-3 text-xs leading-relaxed text-slate-300">
+                            <p id="pedagogicLogicDefinition"></p>
+                            <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-800">
+                                <span class="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Nhận biết mẫu nhanh (5s Cheat Code)</span>
+                                <div id="cheatCodeTriggers" class="text-[11px] text-slate-400 space-y-1">
+                                    <!-- Injected grammar distinction rules -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="resetToMenu()" class="py-3 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-850 text-[10px] font-bold text-slate-300 transition-all text-center uppercase tracking-wider">
+                        VỀ TRANG CHỦ <i class="fa-solid fa-house ml-1"></i>
+                    </button>
+                    <button id="retryRunBtn" class="py-3 rounded-xl text-[10px] font-bold text-slate-950 transition-all text-center neon-glow-rose uppercase tracking-wider">
+                        THỬ LẠI lượt mới <i class="fa-solid fa-rotate-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= STATE 4: CHAMPION / VICTORY ================= -->
+            <div id="stateVictory" class="p-6 md:p-8 text-center hidden">
+                <div class="w-14 h-14 bg-gradient-to-tr from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center mb-5 mx-auto neon-glow-emerald">
+                    <i class="fa-solid fa-crown text-2xl text-slate-950 animate-bounce"></i>
+                </div>
+                
+                <h2 class="arcade-font text-lg md:text-xl font-black text-yellow-400 mb-2">TIMELINE MASTERED!</h2>
+                <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6 leading-relaxed">
+                    Não bộ của bạn đã đồng bộ hóa hoàn hảo với dòng thời gian! Khả năng tự động phát hình ảnh thời gian đã hoàn thiện.
+                </p>
+
+                <div class="bg-slate-950 rounded-xl p-4 border border-slate-900 mb-6 max-w-sm mx-auto">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-[8px] text-slate-500 font-bold uppercase block mb-0.5">Final Score</span>
+                            <span id="finalScoreText" class="arcade-font text-base font-bold text-yellow-400">0</span>
+                        </div>
+                        <div>
+                            <span class="text-[8px] text-slate-500 font-bold uppercase block mb-0.5">Accuracy</span>
+                            <span class="arcade-font text-base font-bold text-emerald-400">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="resetToMenu()" class="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs tracking-wider arcade-font transition-all transform hover:scale-[1.01] uppercase">
+                    Quay về sảnh <i class="fa-solid fa-house ml-1.5"></i>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Credits -->
+    <footer class="w-full border-t border-slate-950 bg-slate-950/60 py-3 text-center text-[8px] text-slate-600 font-semibold tracking-wider uppercase">
+        TEMPORAL RECOGNITION PATTERN • REFLEX ENGINE 4.0
+    </footer>
+
+    <!-- AUDIO ENGINE & LOGICAL DATA -->
+    <script>
+        // WEB AUDIO SYNTHESIS
+        let audioCtx = null;
+        let isSoundMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSynthSound(type) {
+            if (isSoundMuted) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'correct') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.12); // G5
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.18);
+            } 
+            else if (type === 'incorrect') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(45, now + 0.35);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } 
+            else if (type === 'tick') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1000, now);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            }
+        }
+
+        function toggleSound() {
+            isSoundMuted = !isSoundMuted;
+            const icon = document.getElementById('soundIcon');
+            const btn = document.getElementById('soundToggleBtn');
+            if (isSoundMuted) {
+                icon.className = 'fa-solid fa-volume-xmark';
+                btn.classList.add('text-rose-500');
+                btn.classList.remove('text-slate-400');
+            } else {
+                icon.className = 'fa-solid fa-volume-high';
+                btn.classList.remove('text-rose-500');
+                btn.classList.add('text-slate-400');
+                initAudio();
+                playSynthSound('correct');
+            }
+        }
+
+        // 12 TENSES MASTER DATABASE WITH SVG PATTERNS & PEDAGOGY
+        const TENSES_DB = {
+            "PAST_SIMPLE": {
+                name: "Past Simple (Quá khứ Đơn)",
+                symbol: "[X]------NOW",
+                meaning: "Trạng thái hoặc điểm thời gian tĩnh đã hoàn tất hoàn toàn trong quá khứ.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Một điểm cắt [X] cố định nằm gọn bên trái mốc NOW.",
+                    "<strong>Bản chất:</strong> Chỉ một hành động xảy ra và kết thúc nhanh gọn, không liên quan đến hiện tại.",
+                    "<strong>Key triggers:</strong> yesterday, ago, last year, originally, in 2023."
+                ],
+                draw: () => `
+                    <line x1="150" y1="75" x2="150" y2="105" stroke="#818cf8" stroke-width="4" />
+                    <line x1="135" y1="90" x2="165" y2="90" stroke="#818cf8" stroke-width="4" />
+                    <text x="150" y="55" fill="#818cf8" font-size="11" font-weight="black" text-anchor="middle">[X] Event</text>
+                    <text x="150" y="125" fill="#475569" font-size="10" text-anchor="middle">(Quá khứ đã đóng)</text>
+                `
+            },
+            "PAST_CONTINUOUS": {
+                name: "Past Continuous (Quá khứ Tiếp diễn)",
+                symbol: "[===]-----NOW",
+                meaning: "Một quá trình hoặc một tiến trình đang diễn ra dở dang tại một thời điểm quá khứ.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Một đoạn kéo dài [===] nằm ở quá khứ.",
+                    "<strong>Bản chất:</strong> Nhấn mạnh tính liên tục, hành động đang xảy ra thì bị một điểm hành động khác (Past Simple) cắt ngang.",
+                    "<strong>Key triggers:</strong> when, while, at 9 p.m. last night."
+                ],
+                draw: () => `
+                    <rect x="100" y="75" width="100" height="30" rx="6" fill="#818cf8" fill-opacity="0.2" stroke="#818cf8" stroke-width="3" />
+                    <text x="150" y="94" fill="#818cf8" font-size="11" font-weight="black" text-anchor="middle">[===] Process</text>
+                    <text x="150" y="55" fill="#818cf8" font-size="10" font-weight="bold" text-anchor="middle">Đang diễn ra dở dang</text>
+                `
+            },
+            "PAST_PERFECT": {
+                name: "Past Perfect (Quá khứ Hoàn thành)",
+                symbol: "[X]----[X]-----NOW",
+                meaning: "Hành động xảy ra trước, chuẩn bị nền tảng hoặc kết quả trước một hành động quá khứ khác.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Hai điểm [X] nối nhau ở quá khứ, điểm bên trái là Past Perfect (xảy ra trước).",
+                    "<strong>Bản chất:</strong> Mối liên kết thứ tự trước-sau trong quá khứ.",
+                    "<strong>Key triggers:</strong> before, after, by the time (ở quá khứ)."
+                ],
+                draw: () => `
+                    <line x1="100" y1="80" x2="100" y2="100" stroke="#818cf8" stroke-width="3" />
+                    <line x1="90" y1="90" x2="110" y2="90" stroke="#818cf8" stroke-width="3" />
+                    <text x="100" y="55" fill="#818cf8" font-size="9" font-weight="bold" text-anchor="middle">[X] Trước (Had + V3)</text>
+                    <line x1="100" y1="90" x2="200" y2="90" stroke="#475569" stroke-width="2" stroke-dasharray="4,4" />
+                    <line x1="200" y1="80" x2="200" y2="100" stroke="#818cf8" stroke-width="3" />
+                    <line x1="190" y1="90" x2="210" y2="90" stroke="#818cf8" stroke-width="3" />
+                    <text x="200" y="55" fill="#818cf8" font-size="9" font-weight="bold" text-anchor="middle">[X] Sau (V2)</text>
+                `
+            },
+            "PAST_PERFECT_CONTINUOUS": {
+                name: "Past Perfect Continuous (Quá khứ Hoàn thành Tiếp diễn)",
+                symbol: "[===]--[X]-----NOW",
+                meaning: "Một tiến trình diễn ra liên tục kéo dài và dừng lại ngay trước một điểm cắt quá khứ khác.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Một khoảng kéo dài liên tục [===] nối thẳng tới điểm cắt [X] quá khứ.",
+                    "<strong>Bản chất:</strong> Nhấn mạnh thời lượng kéo dài liên tục của hành động.",
+                    "<strong>Key triggers:</strong> for 2 hours before, since... before."
+                ],
+                draw: () => `
+                    <rect x="80" y="75" width="85" height="30" rx="6" fill="#818cf8" fill-opacity="0.15" stroke="#818cf8" stroke-width="2" />
+                    <line x1="165" y1="90" x2="220" y2="90" stroke="#475569" stroke-width="2" stroke-dasharray="3,3" />
+                    <line x1="220" y1="80" x2="220" y2="100" stroke="#818cf8" stroke-width="3" />
+                    <line x1="210" y1="90" x2="230" y2="90" stroke="#818cf8" stroke-width="3" />
+                    <text x="120" y="94" fill="#818cf8" font-size="10" font-weight="bold" text-anchor="middle">[===]</text>
+                    <text x="220" y="55" fill="#818cf8" font-size="9" font-weight="bold" text-anchor="middle">[X] Mốc chặn</text>
+                `
+            },
+            "PRESENT_SIMPLE": {
+                name: "Present Simple (Hiện tại Đơn)",
+                symbol: "<-> NOW <->",
+                meaning: "Sự thật hiển nhiên, thói quen lặp đi lặp lại hoặc lịch trình bất biến.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Hai mũi tên chạy hai hướng đối xứng bao bọc và đi xuyên qua NOW.",
+                    "<strong>Bản chất:</strong> Mô tả trạng thái vĩnh cửu, tính chất tĩnh, thói quen có chu kỳ.",
+                    "<strong>Key triggers:</strong> always, usually, every day, often, frequently."
+                ],
+                draw: () => `
+                    <path d="M 200 90 L 400 90" stroke="#10b981" stroke-width="3" marker-end="url(#game-arrow)" marker-start="url(#game-arrow)" />
+                    <text x="300" y="55" fill="#10b981" font-size="11" font-weight="black" text-anchor="middle">&lt; - - - Habit/Fact - - - &gt;</text>
+                `
+            },
+            "PRESENT_CONTINUOUS": {
+                name: "Present Continuous (Hiện tại Tiếp diễn)",
+                symbol: "[===NOW===]",
+                meaning: "Trạng thái tiến trình đang chuyển động vây quanh mốc thời gian nói hiện tại.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Một khoảng kéo dài [===] bao bọc trọn vẹn điểm NOW.",
+                    "<strong>Bản chất:</strong> Hành động đang diễn ra dở dang, chưa kết thúc ngay lúc này.",
+                    "<strong>Key triggers:</strong> now, currently, at the moment, look!"
+                ],
+                draw: () => `
+                    <rect x="220" y="75" width="160" height="30" rx="8" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="3" />
+                    <text x="300" y="94" fill="#10b981" font-size="11" font-weight="black" text-anchor="middle">[=== Ongoing ===]</text>
+                `
+            },
+            "PRESENT_PERFECT": {
+                name: "Present Perfect (Hiện tại Hoàn thành)",
+                symbol: "[X------NOW]",
+                meaning: "Sợi dây kết nối kết quả/kinh nghiệm từ điểm quá khứ kéo dài thẳng tới NOW.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Điểm khởi nguồn [X] quá khứ có mũi tên/đường nối chạm thẳng mốc NOW.",
+                    "<strong>Bản chất:</strong> Sự kết nối (Connection) của sự việc quá khứ đối với hiện tại.",
+                    "<strong>Key triggers:</strong> since, for, so far, already, yet, recently."
+                ],
+                draw: () => `
+                    <line x1="120" y1="80" x2="120" y2="100" stroke="#10b981" stroke-width="3" />
+                    <line x1="110" y1="90" x2="130" y2="90" stroke="#10b981" stroke-width="3" />
+                    <text x="120" y="55" fill="#10b981" font-size="10" font-weight="bold" text-anchor="middle">[X] Điểm bắt đầu</text>
+                    <path d="M 120 90 L 290 90" stroke="#10b981" stroke-width="3" marker-end="url(#game-arrow)" />
+                    <text x="200" y="80" fill="#10b981" font-size="10" font-weight="bold" text-anchor="middle">Chạm đến hiện tại</text>
+                `
+            },
+            "PRESENT_PERFECT_CONTINUOUS": {
+                name: "Present Perfect Continuous (Hiện tại Hoàn thành Tiếp diễn)",
+                symbol: "[=====> NOW]",
+                meaning: "Tiến trình kéo dài liên tục từ quá khứ, vắt ngang qua NOW và có xu hướng tiếp tục.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Khoảng kéo dài có mũi tên nhọn chạy xuyên qua mốc NOW hướng tới tương lai.",
+                    "<strong>Bản chất:</strong> Nhấn mạnh tính liên tục và thời lượng kéo dài (Duration).",
+                    "<strong>Key triggers:</strong> for 2 hours, since (nhấn mạnh hành động liên tục)."
+                ],
+                draw: () => `
+                    <rect x="120" y="75" width="160" height="30" rx="8" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="2" />
+                    <path d="M 280 90 L 330 90" stroke="#10b981" stroke-width="3" marker-end="url(#game-arrow)" />
+                    <text x="210" y="94" fill="#10b981" font-size="10" font-weight="black" text-anchor="middle">[=======> NOW]</text>
+                    <text x="210" y="125" fill="#475569" font-size="9" text-anchor="middle">(Nhấn mạnh thời lượng kéo dài)</text>
+                `
+            },
+            "FUTURE_SIMPLE": {
+                name: "Future Simple (Tương lai Đơn)",
+                symbol: "NOW --- [X]",
+                meaning: "Một quyết định tức thời, dự đoán không căn cứ xảy ra ở một điểm tương lai.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Một điểm [X] đứng đơn độc bên phải mốc NOW.",
+                    "<strong>Bản chất:</strong> Ý định mang tính thời điểm, chưa có sự chuẩn bị hoặc lịch trình cụ thể.",
+                    "<strong>Key triggers:</strong> tomorrow, next week, soon, will."
+                ],
+                draw: () => `
+                    <line x1="450" y1="75" x2="450" y2="105" stroke="#06b6d4" stroke-width="4" />
+                    <line x1="435" y1="90" x2="465" y2="90" stroke="#06b6d4" stroke-width="4" />
+                    <text x="450" y="55" fill="#06b6d4" font-size="11" font-weight="black" text-anchor="middle">[X] Future Point</text>
+                `
+            },
+            "FUTURE_CONTINUOUS": {
+                name: "Future Continuous (Tương lai Tiếp diễn)",
+                symbol: "NOW ---- [===]",
+                meaning: "Một tiến trình đang xảy ra dở dang tại một điểm mốc thời gian trong tương lai.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Khoảng kéo dài [===] nằm gọn bên phải mốc NOW.",
+                    "<strong>Bản chất:</strong> Định vị hành động đang tiếp diễn tại một mốc giờ tương lai.",
+                    "<strong>Key triggers:</strong> this time tomorrow, at 8 p.m. tomorrow."
+                ],
+                draw: () => `
+                    <rect x="400" y="75" width="100" height="30" rx="6" fill="#06b6d4" fill-opacity="0.2" stroke="#06b6d4" stroke-width="3" />
+                    <text x="450" y="94" fill="#06b6d4" font-size="11" font-weight="black" text-anchor="middle">[===] Future Process</text>
+                `
+            },
+            "FUTURE_PERFECT": {
+                name: "Future Perfect (Tương lai Hoàn thành)",
+                symbol: "NOW --- [X] --- Deadline",
+                meaning: "Hành động kết thúc hoàn thành trước một mốc thời gian giới hạn (Deadline) ở tương lai.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Điểm [X] nằm kẹp giữa NOW và một mốc chặn Deadline tương lai.",
+                    "<strong>Bản chất:</strong> Sự hoàn thành trước một mốc hạn định tương lai.",
+                    "<strong>Key triggers:</strong> by next week, by the end of next month, before."
+                ],
+                draw: () => `
+                    <line x1="410" y1="80" x2="410" y2="100" stroke="#06b6d4" stroke-width="4" />
+                    <line x1="400" y1="90" x2="420" y2="90" stroke="#06b6d4" stroke-width="4" />
+                    <text x="410" y="55" fill="#06b6d4" font-size="10" font-weight="bold" text-anchor="middle">[X] Hoàn tất</text>
+                    <line x1="410" y1="90" x2="500" y2="90" stroke="#475569" stroke-width="2" stroke-dasharray="4,4" />
+                    <line x1="500" y1="75" x2="500" y2="105" stroke="#cbd5e1" stroke-width="3" />
+                    <text x="500" y="125" fill="#94a3b8" font-size="9" font-weight="bold" text-anchor="middle">Deadline</text>
+                `
+            },
+            "FUTURE_PERFECT_CONTINUOUS": {
+                name: "Future Perfect Continuous (Tương lai Hoàn thành Tiếp diễn)",
+                symbol: "[====> NOW ====> FUTURE POINT]",
+                meaning: "Một tiến trình liên tục kéo dài đi xuyên suốt từ quá khứ đến mốc chặn tương lai.",
+                cheat: [
+                    "<strong>Sơ đồ:</strong> Mũi tên kéo dài xuyên suốt từ quá khứ qua NOW đến FUTURE POINT.",
+                    "<strong>Bản chất:</strong> Nhấn mạnh thời lượng kéo dài liên tục tích lũy đến mốc tương lai.",
+                    "<strong>Key triggers:</strong> by next year... for 5 years."
+                ],
+                draw: () => `
+                    <rect x="180" y="75" width="220" height="30" rx="8" fill="#06b6d4" fill-opacity="0.15" stroke="#06b6d4" stroke-width="2" />
+                    <path d="M 400 90 L 460 90" stroke="#06b6d4" stroke-width="3" marker-end="url(#game-arrow)" />
+                    <text x="290" y="94" fill="#06b6d4" font-size="9" font-weight="black" text-anchor="middle">[====> NOW ====> FUTURE POINT]</text>
+                `
+            }
+        };
+
+        // GAME LEVELS SETUP
+        const GAME_MODES = {
+            level1: {
+                badgeClass: "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30",
+                badgeText: "LEVEL 1: RECOGNITION",
+                goalText: "Nhìn sơ đồ -> Tên thì tương ứng",
+                generate: () => {
+                    // Choose random tense, user must choose correct name
+                    const keys = Object.keys(TENSES_DB);
+                    const correctKey = keys[Math.floor(Math.random() * keys.length)];
+                    const correctTense = TENSES_DB[correctKey];
+
+                    const options = [correctTense.name];
+                    while (options.length < 4) {
+                        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                        const randomName = TENSES_DB[randomKey].name;
+                        if (!options.includes(randomName)) {
+                            options.push(randomName);
+                        }
+                    }
+                    return {
+                        tenseKey: correctKey,
+                        svgContent: correctTense.draw(),
+                        showScenario: false,
+                        scenarioText: "",
+                        correctAnswer: correctTense.name,
+                        options: shuffle(options),
+                        correctFeedback: `Đúng! Sơ đồ này biểu diễn bản chất của ${correctTense.name}.`
+                    };
+                }
+            },
+            level2: {
+                badgeClass: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+                badgeText: "LEVEL 2: SITUATION TO TIMELINE",
+                goalText: "Tình huống -> Chọn đúng Sơ đồ",
+                generate: () => {
+                    const pool = [
+                        {
+                            scenario: "Điện thoại đổ chuông cắt ngang khi tôi đang tắm hôm qua.",
+                            correctKey: "PAST_CONTINUOUS",
+                            desc: "Sự việc tắm đang diễn ra dở dang [===] trong quá khứ thì bị điểm cắt điện thoại [X] xen ngang."
+                        },
+                        {
+                            scenario: "Tôi đến sân ga lúc 8 giờ, nhưng tàu đã chạy đi trước đó từ lúc 7h45.",
+                            correctKey: "PAST_PERFECT",
+                            desc: "Tàu chạy (xảy ra trước) hoàn thành trước khi tôi đến (xảy ra sau). Bản chất logic nối điểm trước-sau [X]----[X] trong quá khứ."
+                        },
+                        {
+                            scenario: "Tôi sống và làm việc ở Sài Gòn từ năm 2015 đến tận bây giờ.",
+                            correctKey: "PRESENT_PERFECT",
+                            desc: "Hành động kết nối từ quá khứ kéo dài chạm đến hiện tại [X------NOW]."
+                        },
+                        {
+                            scenario: "Đừng gọi cho tôi lúc 9h sáng mai nhé, lúc đó tôi đang bay đi Singapore rồi.",
+                            correctKey: "FUTURE_CONTINUOUS",
+                            desc: "Hành động đang diễn ra dở dang [===] tại một điểm mốc thời gian cụ thể trong tương lai."
+                        },
+                        {
+                            scenario: "Tôi hứa sẽ gửi báo cáo kế hoạch marketing cho bạn vào ngày mai.",
+                            correctKey: "FUTURE_SIMPLE",
+                            desc: "Lời hứa tức thời tại thời điểm nói, biểu diễn bằng một điểm cắt [X] đơn lẻ ở tương lai."
+                        },
+                        {
+                            scenario: "Mặt trời luôn luôn mọc ở hướng Đông.",
+                            correctKey: "PRESENT_SIMPLE",
+                            desc: "Sự thật hiển nhiên vĩnh cửu, sơ đồ mũi tên hai hướng đối xứng chạy xuyên suốt qua NOW."
+                        },
+                        {
+                            scenario: "Họ đã liên tục đập búa sửa đường suốt 4 tiếng đồng hồ và vẫn đang tiếp tục làm điếc tai tôi.",
+                            correctKey: "PRESENT_PERFECT_CONTINUOUS",
+                            desc: "Nhấn mạnh thời lượng kéo dài liên tục từ quá khứ đến hiện tại và tiếp tục đi tiếp [=====> NOW]."
+                        }
+                    ];
+                    const item = pool[Math.floor(Math.random() * pool.length)];
+                    const correctTense = TENSES_DB[item.correctKey];
+                    
+                    const options = [correctTense.symbol];
+                    const allSymbols = Object.keys(TENSES_DB).map(k => TENSES_DB[k].symbol);
+                    while (options.length < 4) {
+                        const randSym = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+                        if (!options.includes(randSym)) {
+                            options.push(randSym);
+                        }
+                    }
+
+                    return {
+                        tenseKey: item.correctKey,
+                        svgContent: `
+                            <text x="300" y="90" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">SƠ ĐỒ TRỰC QUAN ĐƯỢC CHỨA TRONG ĐÁP ÁN</text>
+                        `,
+                        showScenario: true,
+                        scenarioText: item.scenario,
+                        correctAnswer: correctTense.symbol,
+                        options: shuffle(options),
+                        correctFeedback: item.desc
+                    };
+                }
+            },
+            level3: {
+                badgeClass: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30",
+                badgeText: "LEVEL 3: SIGNAL BATTLE",
+                goalText: "Signal Word -> Chọn Sơ đồ",
+                generate: () => {
+                    const signals = [
+                        { word: "since 2015 / for 10 years", key: "PRESENT_PERFECT" },
+                        { word: "before / by the time (ở quá khứ)", key: "PAST_PERFECT" },
+                        { word: "currently / at the moment", key: "PRESENT_CONTINUOUS" },
+                        { word: "originally / yesterday / 2 years ago", key: "PAST_SIMPLE" },
+                        { word: "by next Monday / by the end of this month", key: "FUTURE_PERFECT" },
+                        { word: "at 8 p.m. last night / while", key: "PAST_CONTINUOUS" },
+                        { word: "always / frequently / every single day", key: "PRESENT_SIMPLE" }
+                    ];
+                    const item = signals[Math.floor(Math.random() * signals.length)];
+                    const correctTense = TENSES_DB[item.key];
+
+                    const options = [correctTense.symbol];
+                    const allSymbols = Object.keys(TENSES_DB).map(k => TENSES_DB[k].symbol);
+                    while (options.length < 4) {
+                        const randSym = allSymbols[Math.floor(Math.random() * allSymbols.length)];
+                        if (!options.includes(randSym)) {
+                            options.push(randSym);
+                        }
+                    }
+
+                    return {
+                        tenseKey: item.key,
+                        svgContent: `
+                            <text x="300" y="70" fill="#06b6d4" font-size="16" font-weight="black" text-anchor="middle">" ${item.word.toUpperCase()} "</text>
+                            <text x="300" y="110" fill="#64748b" font-size="10" font-weight="bold" text-anchor="middle">Cần ánh xạ sang mô hình logic nào?</text>
+                        `,
+                        showScenario: false,
+                        scenarioText: "",
+                        correctAnswer: correctTense.symbol,
+                        options: shuffle(options),
+                        correctFeedback: `Chính xác! Từ khóa "${item.word}" là định vị GPS đại diện cho mô hình ${correctTense.symbol} (${correctTense.name}).`
+                    };
+                }
+            },
+            level4: {
+                badgeClass: "bg-amber-500/20 text-amber-400 border border-amber-500/30",
+                badgeText: "LEVEL 4: SPOT THE DIFFERENCE",
+                goalText: "Phân biệt vi mô",
+                generate: () => {
+                    const cases = [
+                        {
+                            text: "Sự khác biệt: Hành động đã kết thúc hẳn so với hành động còn dính líu đến hiện tại.",
+                            opA: "[X]------NOW (Past Simple)",
+                            opB: "[X------NOW] (Present Perfect)",
+                            question: "I worked here for 2 years (và hiện tại tôi không còn làm ở đây nữa). Sơ đồ đúng?",
+                            correct: "[X]------NOW (Past Simple)",
+                            desc: "Vì hành động 'worked' đã kết thúc hoàn toàn trong quá khứ và không còn dính líu đến hiện tại, sơ đồ của nó là một điểm cắt đơn lẻ [X] phía bên trái."
+                        },
+                        {
+                            text: "Sự khác biệt: Nhấn mạnh vào kết quả so với nhấn mạnh vào thời lượng kéo dài liên tục.",
+                            opA: "[X------NOW] (Present Perfect)",
+                            opB: "[=====> NOW] (Present Perfect Continuous)",
+                            question: "I have been writing this report for 2 hours (mỏi nhừ cả tay). Sơ đồ đúng?",
+                            correct: "[=====> NOW] (Present Perfect Continuous)",
+                            desc: "Khi nhấn mạnh sự mỏi mệt, thời lượng liên tục của hành động kéo dài đến nay và có xu hướng tiếp tục, ta chọn sơ đồ tiến trình [=====> NOW]."
+                        },
+                        {
+                            text: "Sự khác biệt: Sự việc tương lai chưa lên lịch so với kế hoạch đã có căn cứ vững vàng.",
+                            opA: "NOW --- [X] (Future Simple)",
+                            opB: "NOW--plan--[X] (Be going to)",
+                            question: "Look at those dark clouds! It is going to rain. Sơ đồ đúng?",
+                            correct: "NOW--plan--[X] (Be going to)",
+                            desc: "Sự việc có căn cứ từ hiện tại (mây đen) chứng minh kế hoạch/xu hướng chuẩn bị xảy ra. Ta dùng sơ đồ nhịp cầu plan."
+                        }
+                    ];
+                    const item = cases[Math.floor(Math.random() * cases.length)];
+
+                    return {
+                        tenseKey: "PAST_SIMPLE", // fallback
+                        svgContent: `
+                            <text x="300" y="60" fill="#f59e0b" font-size="11" font-weight="black" text-anchor="middle">SO SÁNH BẢN CHẤT VI MÔ</text>
+                            <text x="300" y="90" fill="#e2e8f0" font-size="11" font-weight="bold" text-anchor="middle" width="400">"${item.question}"</text>
+                            <text x="300" y="120" fill="#64748b" font-size="9" text-anchor="middle">${item.text}</text>
+                        `,
+                        showScenario: false,
+                        scenarioText: "",
+                        correctAnswer: item.correct,
+                        options: [item.opA, item.opB],
+                        correctFeedback: item.desc
+                    };
+                }
+            }
+        };
+
+        // SHUFFLE ARRAY HELPER
+        function shuffle(arr) {
+            const temp = [...arr];
+            for (let i = temp.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [temp[i], temp[j]] = [temp[j], temp[i]];
+            }
+            return temp;
+        }
+
+        // GAME STATE VARIABLES
+        let currentMode = ''; 
+        let score = 0;
+        let streak = 0;
+        let highScore = parseInt(localStorage.getItem('tense_timeline_reflex_highscore') || '0');
+        
+        let timeLeft = 15;
+        const TIME_LIMIT = 15;
+        let lastTime = 0;
+        let timerId = null;
+        let currentQuestionData = null;
+        let solvedCount = 0;
+
+        document.getElementById('globalHighScore').textContent = String(highScore).padStart(6, '0');
+
+        function showPanel(state) {
+            document.getElementById('stateMenu').classList.add('hidden');
+            document.getElementById('statePlaying').classList.add('hidden');
+            document.getElementById('stateFeedback').classList.add('hidden');
+            document.getElementById('stateVictory').classList.add('hidden');
+            document.getElementById('timerBarContainer').classList.add('hidden');
+
+            if (state === 'menu') {
+                document.getElementById('stateMenu').classList.remove('hidden');
+            } else if (state === 'playing') {
+                document.getElementById('statePlaying').classList.remove('hidden');
+                document.getElementById('timerBarContainer').classList.remove('hidden');
+            } else if (state === 'feedback') {
+                document.getElementById('stateFeedback').classList.remove('hidden');
+            } else if (state === 'victory') {
+                document.getElementById('stateVictory').classList.remove('hidden');
+            }
+        }
+
+        // START GAME RUN
+        function launchGameMode(mode) {
+            initAudio();
+            currentMode = mode;
+            score = 0;
+            streak = 0;
+            solvedCount = 0;
+
+            const badge = document.getElementById('modeBadge');
+            const goalTip = document.getElementById('levelGoalTip');
+            badge.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider";
+
+            const config = GAME_MODES[mode];
+            badge.className += ` ${config.badgeClass}`;
+            badge.textContent = config.badgeText;
+            goalTip.textContent = config.goalText;
+
+            updateDashboard();
+            showPanel('playing');
+            loadQuestion();
+        }
+
+        function updateDashboard() {
+            document.getElementById('currentScore').textContent = String(score).padStart(6, '0');
+            document.getElementById('currentStreak').textContent = `${streak}x Streak`;
+            
+            const container = document.getElementById('streakContainer');
+            if (streak > 0) {
+                container.className = "flex items-center space-x-2 bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 rounded-full neon-glow-emerald";
+            } else {
+                container.className = "flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full";
+            }
+        }
+
+        function loadQuestion() {
+            if (solvedCount >= 10) {
+                triggerVictory();
+                return;
+            }
+
+            document.getElementById('questionCounter').textContent = `Q. ${solvedCount + 1} / 10`;
+
+            const generator = GAME_MODES[currentMode];
+            currentQuestionData = generator.generate();
+
+            // Inject Custom SVG content if Level 1
+            const svgGroup = document.getElementById('game-dynamic-shapes');
+            if (currentMode === 'level1') {
+                svgGroup.innerHTML = currentQuestionData.svgContent;
+            } else {
+                svgGroup.innerHTML = `
+                    <g transform="translate(0, 0)">
+                        ${currentQuestionData.svgContent}
+                    </g>
+                `;
+            }
+
+            // Set up scenario box visibility
+            const scenarioBox = document.getElementById('contextScenarioBox');
+            if (currentQuestionData.showScenario) {
+                scenarioBox.classList.remove('hidden');
+                document.getElementById('contextScenarioText').textContent = currentQuestionData.scenarioText;
+            } else {
+                scenarioBox.classList.add('hidden');
+            }
+
+            // Build Answers Grid
+            const grid = document.getElementById('choicesGrid');
+            grid.innerHTML = '';
+
+            currentQuestionData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-arcade w-full py-3 px-4 bg-slate-900 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 rounded-xl text-left font-semibold text-[11px] transition-all flex justify-between items-center group text-slate-300";
+                btn.innerHTML = `
+                    <span><span class="text-slate-500 mr-2 group-hover:text-indigo-400">${String.fromCharCode(65+idx)}.</span> ${opt}</span>
+                    <i class="fa-solid fa-crosshairs opacity-0 group-hover:opacity-100 text-indigo-400 transition-all text-[9px]"></i>
+                `;
+                btn.onclick = () => selectAnswer(opt === currentQuestionData.correctAnswer, opt);
+                grid.appendChild(btn);
+            });
+
+            // Start clock
+            timeLeft = TIME_LIMIT;
+            startCountdown();
+        }
+
+        // HIGH PRECISION TIME MANAGER
+        function startCountdown() {
+            if (timerId) cancelAnimationFrame(timerId);
+            lastTime = performance.now();
+            
+            function tick(now) {
+                const delta = (now - lastTime) / 1000;
+                lastTime = now;
+                timeLeft -= delta;
+
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    renderTimerBar();
+                    handleTimeout();
+                } else {
+                    renderTimerBar();
+                    if (timeLeft < 3 && Math.floor(timeLeft * 10) % 5 === 0) {
+                        playSynthSound('tick');
+                    }
+                    timerId = requestAnimationFrame(tick);
+                }
+            }
+            timerId = requestAnimationFrame(tick);
+        }
+
+        function renderTimerBar() {
+            const percentage = (timeLeft / TIME_LIMIT) * 100;
+            const bar = document.getElementById('timerProgress');
+            bar.style.width = `${percentage}%`;
+            
+            if (timeLeft < 3) {
+                bar.className = "h-full bg-gradient-to-r from-rose-500 to-red-600 w-full timer-progress";
+            } else if (timeLeft < 6) {
+                bar.className = "h-full bg-gradient-to-r from-amber-500 to-yellow-400 w-full timer-progress";
+            } else {
+                bar.className = "h-full bg-gradient-to-r from-indigo-500 to-cyan-500 w-full timer-progress";
+            }
+        }
+
+        function stopCountdown() {
+            if (timerId) cancelAnimationFrame(timerId);
+        }
+
+        function handleTimeout() {
+            stopCountdown();
+            triggerFailure("HẾT GIỜ!", currentQuestionData.correctAnswer, "Hết thời gian 15 giây suy nghĩ!");
+        }
+
+        function selectAnswer(isCorrect, selected) {
+            stopCountdown();
+            if (isCorrect) {
+                playSynthSound('correct');
+                score += 100 + (streak * 50);
+                streak++;
+
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('tense_timeline_reflex_highscore', highScore);
+                    document.getElementById('globalHighScore').textContent = String(highScore).padStart(6, '0');
+                }
+
+                updateDashboard();
+
+                // Correct flash
+                const win = document.getElementById('gameWindow');
+                win.classList.add('border-green-500', 'neon-glow-emerald');
+                setTimeout(() => {
+                    win.classList.remove('border-green-500', 'neon-glow-emerald');
+                    solvedCount++;
+                    loadQuestion();
+                }, 400);
+
+            } else {
+                triggerFailure(selected, currentQuestionData.correctAnswer, "Lựa chọn sai lệch mô hình dòng thời gian!");
+            }
+        }
+
+        function triggerFailure(selected, correct, reason) {
+            playSynthSound('incorrect');
+            const win = document.getElementById('gameWindow');
+            win.classList.add('animate-shake', 'border-rose-500', 'neon-glow-rose');
+            setTimeout(() => {
+                win.classList.remove('animate-shake', 'border-rose-500', 'neon-glow-rose');
+            }, 350);
+
+            // Inject failures details
+            document.getElementById('failureExplanationHeader').textContent = reason;
+            document.getElementById('userChoiceResult').textContent = selected;
+            document.getElementById('correctChoiceResult').textContent = correct;
+
+            // Fetch current active tense diagnostic
+            const activeTenseObj = TENSES_DB[currentQuestionData.tenseKey] || TENSES_DB["PAST_SIMPLE"];
+            
+            document.getElementById('pedagogicLogicDefinition').innerHTML = `
+                <strong>Bản chất logic thời gian:</strong> ${activeTenseObj.meaning}
+            `;
+            
+            const triggerBox = document.getElementById('cheatCodeTriggers');
+            triggerBox.innerHTML = '';
+            activeTenseObj.cheat.forEach(rule => {
+                const li = document.createElement('div');
+                li.className = "text-[11px] border-b border-slate-900/60 pb-1 mb-1 last:border-b-0";
+                li.innerHTML = rule;
+                triggerBox.appendChild(li);
+            });
+
+            // Hardcore permadeath reset
+            score = 0;
+            streak = 0;
+            updateDashboard();
+
+            // Direct Retry Button
+            document.getElementById('retryRunBtn').onclick = () => {
+                solvedCount = 0;
+                showPanel('playing');
+                loadQuestion();
+            };
+
+            showPanel('feedback');
+        }
+
+        function triggerVictory() {
+            playSynthSound('correct');
+            document.getElementById('finalScoreText').textContent = score;
+            showPanel('victory');
+        }
+
+        function resetToMenu() {
+            stopCountdown();
+            showPanel('menu');
+        }
+    </script>
+</body>
+</html>
